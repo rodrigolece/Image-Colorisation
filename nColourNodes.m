@@ -8,6 +8,6 @@ end
 [l, k, ~] = size(img);
 
 % randi does allow replacement, instead randperm
-out = randperm(k*l, n);
+out = randperm(k*l, n)';
 
 end
