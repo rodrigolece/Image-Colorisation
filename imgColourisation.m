@@ -22,7 +22,7 @@ function varargout = imgColourisation(varargin)
 
 % Edit the above text to modify the response to help imgColourisation
 
-% Last Modified by GUIDE v2.5 15-Feb-2017 13:53:37
+% Last Modified by GUIDE v2.5 01-Mar-2017 09:44:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -63,6 +63,11 @@ set(gca,'xtick',[],'ytick',[])
 % Choose default command line output for imgColourisation
 handles.output = hObject;
 
+handles.sigma1 = 100;
+handles.sigma2 = 100;
+handles.p = 0.5;
+handles.delta = 2e-6;
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -102,11 +107,21 @@ imshow(handles.img);
 guidata(hObject, handles);
 
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in recolour.
+function recolour_img_Callback(hObject, eventdata, handles)
+% hObject    handle to recolour_img (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+disp('recolour')
+
+handles.reconstructed = recolourFake(handles.fake, handles.color_pixels, ...
+    handles.func, handles.sigma1, handles.sigma2, handles.p, handles.delta);
+
+axes(handles.axes2)
+imshow(handles.reconstructed)
+
+guidata(hObject, handles)
 
 
 % --- Executes on button press in fake_image.
@@ -115,7 +130,10 @@ function fake_image_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.fake = fakeImage(handles.img, handles.color_pixels, 1); % For the moment fixed seed
+disp('fake')
+[f, px] = fakeImage(handles.img, handles.color_pixels, 1); % For the moment fixed seed
+handles.fake = f; handles.color_pixels = px;
+
 axes(handles.axes2)
 imshow(handles.fake)
 
@@ -195,3 +213,138 @@ end
 handles.input_style = 'number';
 
 guidata(hObject, handles)
+
+
+
+function edit_sigma1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_sigma1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_sigma1 as text
+%        str2double(get(hObject,'String')) returns contents of edit_sigma1 as a double
+
+disp('Run again to see results')
+handles.sigma1 = str2double(get(handles.edit_sigma1,'String'));
+guidata(hObject, handles)
+
+% --- Executes during object creation, after setting all properties.
+function edit_sigma1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_sigma1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_sigma2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_sigma2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_sigma2 as text
+%        str2double(get(hObject,'String')) returns contents of edit_sigma2 as a double
+
+disp('Run again to see results')
+handles.sigma2 = str2double(get(handles.edit_sigma2,'String'));
+guidata(hObject, handles)
+
+% --- Executes during object creation, after setting all properties.
+function edit_sigma2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_sigma2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit_p_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_p (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_p as text
+%        str2double(get(hObject,'String')) returns contents of edit_p as a double
+
+disp('Run again to see results')
+handles.p = str2double(get(handles.edit_p,'String'));
+guidata(hObject, handles)
+
+% --- Executes during object creation, after setting all properties.
+function edit_p_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_p (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function edit_delta_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_delta (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit_delta as text
+%        str2double(get(hObject,'String')) returns contents of edit_delta as a double
+
+
+disp('Run again to see results')
+handles.delta = str2double(get(handles.edit_delta,'String'));
+guidata(hObject, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_delta_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_delta (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in btn_gauss.
+function btn_gauss_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_gauss (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of btn_gauss
+
+if get(hObject,'Value')
+    handles.func = 'gauss';
+    disp('gauss')
+    guidata(hObject, handles);
+end
+
+
+% --- Executes on button press in btn_compact.
+function btn_compact_Callback(hObject, eventdata, handles)
+% hObject    handle to btn_compact (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of btn_compact
+
+if get(hObject,'Value')
+    handles.func = 'compact';
+    disp('compact')
+    guidata(hObject, handles);
+end

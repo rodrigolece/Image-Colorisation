@@ -14,7 +14,7 @@ function out = recolourFake(fake, pixels, func, sigma1, sigma2, p, delta)
 switch func
     case 'gauss'
         phi = @(r) exp(-r.^2);
-    case 'conpact'
+    case 'compact'
         phi = @(r) max(1-r,0).^4.*(4*r-1);
 end
 
