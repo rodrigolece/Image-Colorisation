@@ -22,7 +22,7 @@ function varargout = imgColourisation(varargin)
 
 % Edit the above text to modify the response to help imgColourisation
 
-% Last Modified by GUIDE v2.5 01-Mar-2017 09:44:49
+% Last Modified by GUIDE v2.5 15-Mar-2017 15:06:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,14 +52,6 @@ function imgColourisation_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to imgColourisation (see VARARGIN)
 
-% Hide the axes
-axes(handles.axes1)
-set(gca,'xtick',[],'ytick',[])
-% set(gca,'visible','off')
-
-axes(handles.axes2)
-set(gca,'xtick',[],'ytick',[])
-
 % Choose default command line output for imgColourisation
 handles.output = hObject;
 
@@ -67,6 +59,8 @@ handles.sigma1 = 100;
 handles.sigma2 = 100;
 handles.p = 0.5;
 handles.delta = 2e-6;
+
+handles.errors = [];
 
 % Update handles structure
 guidata(hObject, handles);
@@ -86,40 +80,29 @@ function varargout = imgColourisation_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
-% --- Executes on button press in load_image.
-function load_image_Callback(hObject, eventdata, handles)
-% hObject    handle to load_image (see GCBO)
+
+% --- Executes on button press in mouse_btn.
+function mouse_btn_Callback(hObject, eventdata, handles)
+% hObject    handle to mouse_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-[filename, filepath]=uigetfile({'*.*','All Files'}, 'Select input image');
-% disp([filepath, filename]);
-handles.img = imread([filepath, filename]);
+axes(handles.axes1)
 
-[l,m,~] = size(handles.img);
-handles.total_pixels = l*m;
-handles.color_pixels = 0;
+[k, l, ~] = size(handles.img);
 
-% Show the picture
-axes(handles.axes1); 
-imshow(handles.img);
+[x, y] = ginput(100); 
+% We choose an arbitrarily big number, the user will escape before reaching it
+x = round(x); y = round(y);
 
-guidata(hObject, handles);
+px = sub2ind([k, l], y, x);
+handles.color_pixels = px;
 
 
-% --- Executes on button press in recolour.
-function recolour_img_Callback(hObject, eventdata, handles)
-% hObject    handle to recolour_img (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-disp('recolour')
-
-handles.reconstructed = recolourFake(handles.fake, handles.color_pixels, ...
-    handles.func, handles.sigma1, handles.sigma2, handles.p, handles.delta);
+handles.fake = fakeImage(handles.img, px);
 
 axes(handles.axes2)
-imshow(handles.reconstructed)
+imshow(handles.fake)
 
 guidata(hObject, handles)
 
@@ -130,9 +113,10 @@ function fake_image_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-disp('fake')
-[f, px] = fakeImage(handles.img, handles.color_pixels, 1); % For the moment fixed seed
-handles.fake = f; handles.color_pixels = px;
+px = nColourNodes(handles.img, handles.color_pixels, 1); % For the moment fixed seed
+handles.color_pixels = px;
+
+handles.fake = fakeImage(handles.img, px);
 
 axes(handles.axes2)
 imshow(handles.fake)
@@ -210,7 +194,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-handles.input_style = 'number';
+% handles.input_style = 'number';
 
 guidata(hObject, handles)
 
@@ -348,3 +332,62 @@ if get(hObject,'Value')
     disp('compact')
     guidata(hObject, handles);
 end
+
+
+% --- Executes on button press in recolour.
+function recolour_img_Callback(hObject, eventdata, handles)
+% hObject    handle to recolour_img (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+disp('recolour')
+
+tic;
+handles.reconstructed = recolourFake(handles.fake, handles.color_pixels, ...
+    handles.func, handles.sigma1, handles.sigma2, handles.p, handles.delta);
+time = toc;
+
+error = squareError(handles.img, handles.reconstructed);
+handles.errors = [handles.errors; error];
+
+axes(handles.axes2)
+imshow(handles.reconstructed)
+% set(handles.main_text, 'String', ['Time: ', str2double(time), '\n', ...
+%     'Error: ', str2double(error)] );
+
+axes(handles.axes3)
+% hold on
+set(gca, 'ColorOrderIndex', 1)
+plot(handles.errors)
+% hold off
+
+guidata(hObject, handles)
+
+
+
+% --------------------------------------------------------------------
+function load_image_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to load_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[filename, filepath]=uigetfile({'*.*','All Files'}, 'Select input image');
+% disp([filepath, filename]);
+handles.img = imread([filepath, filename]);
+
+[k, l, ~] = size(handles.img);
+handles.total_pixels = k*l;
+handles.color_pixels = 0;
+
+% Show the picture
+axes(handles.axes1); 
+imshow(handles.img);
+
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function uipushtool2_ClickedCallback(hObject, eventdata, handles)
+% hObject    handle to uipushtool2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

@@ -1,11 +1,4 @@
-function [fake, pixels] = fakeImage(img, n, varargin)
-
-if nargin == 2
-    pixels = nColourNodes(img, n);
-else
-    seed = varargin{1};
-    pixels = nColourNodes(img, n, seed);
-end
+function fake = fakeImage(img, pixels)
 
 fake = convert2greyscale(img);
 
