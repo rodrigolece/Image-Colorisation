@@ -62,6 +62,12 @@ handles.delta = 2e-6;
 
 handles.errors = [];
 
+blue = [0, 0.4470, 0.7410];
+red = [0.8500, 0.3250, 0.0980];
+green = [0.4660, 0.6740, 0.1880];
+white = [0.5, 0.5, 0.5];
+set(0,'DefaultAxesColorOrder',[white; red; green; blue])
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -347,8 +353,8 @@ handles.reconstructed = recolourFake(handles.fake, handles.color_pixels, ...
     handles.func, handles.sigma1, handles.sigma2, handles.p, handles.delta);
 time = toc;
 
-error = squareError(handles.img, handles.reconstructed);
-handles.errors = [handles.errors; error];
+[avg, red, green, blue]  = squareError(handles.img, handles.reconstructed);
+handles.errors = [handles.errors; avg, red, green, blue];
 
 axes(handles.axes2)
 imshow(handles.reconstructed)
