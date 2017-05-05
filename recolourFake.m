@@ -31,12 +31,13 @@ grey(colori, colorj) = round( 0.3*fake(colori,colorj,1) + ...
     0.11*fake(colori,colorj,2) + 0.59*fake(colori,colorj,3) );
 
 % Calculate the restricted kernel
+% It has ones in the diagonal, no need calculating that
 restricted_kernel = eye(n);
 
 % [colori, colorj] = ind2sub([k, l], pixels);
 
 for c = 1:n
-    idx = (c+1:n)'; % We only fill in below the diagonal
+    idx = (c+1:n)'; % We only fill below the diagonal
     
     col = phi( sqrt( (colori(c) - colori(idx)).^2 + (colorj(c) - colorj(idx)).^2 ) ...
         /sigma1 ) .* ...
@@ -74,7 +75,7 @@ end
 out = zeros(k, l, 3, 'uint8');
 
 for s = 1:3
-    out(:,:,s) = uint8(reshape(round(full_kernel*coeffs(:,s)), k, l));
+    out(:,:,s) = uint8(reshape(full_kernel*coeffs(:,s), k, l));
 end
 
 end
